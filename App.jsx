@@ -8,6 +8,7 @@ import NearbyScreen from './src/screens/NearbyScreen';
 import ScanScreen from './src/screens/ScanScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import PromosScreen from './src/screens/PromosScreen';
+import JourneyPlannerSearch from './src/screens/Page/SearchPage.js';
 import Octicons from 'react-native-vector-icons/Octicons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -64,6 +65,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
         <Stack.Screen name="PromosScreen" component={PromosScreen} options={{ title: 'Promotions' }} />
+        <Stack.Screen name="JourneyPlannerSearch" component={JourneyPlannerSearch} options={{ title: 'Trip Planning' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -72,17 +74,18 @@ export default function App() {
 // Styles
 const styles = StyleSheet.create({
   tabBarStyle: {
-    height: 70,
+    height: 80,
     paddingBottom: 10,
     paddingTop: 10,
   },
   tabBarIconStyle: {
-    marginBottom: 0,
+    marginBottom: -5,
   },
   tabBarLabelStyle: {
     fontFamily: 'UrbanistSemiBold',
     fontSize: 12,
     marginTop: -2,
+    marginBottom: 10,
   },
   iconSize: {
     size: 22,

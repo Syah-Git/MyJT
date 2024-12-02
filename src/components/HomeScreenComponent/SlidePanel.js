@@ -1,40 +1,58 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, PanResponder, Dimensions, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  PanResponder,
+  Dimensions,
+  Image,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import Swiper from 'react-native-swiper';
 
+// Get the screen height to calculate the drawer's position dynamically
 const { height } = Dimensions.get('window');
 
-// Example promo data
+// Example promo data for the Swiper carousel
 const promoData = [
   { id: '1', image: 'https://via.placeholder.com/300x150.png?text=Promo+1' },
   { id: '2', image: 'https://via.placeholder.com/300x150.png?text=Promo+2' },
   { id: '3', image: 'https://via.placeholder.com/300x150.png?text=Promo+3' },
 ];
 
-const SlidePanel = ({ onViewAllPromos }) => {
+// Main SlidePanel component
+const SlidePanel = ({ onViewAllPromos , onGetMeSomewhere }) => {
+  // Animation value to control the slide position of the panel
   const slideAnim = useRef(new Animated.Value(height * 0.4)).current;
+
+  // State to track if the user is swiping in the promo Swiper
   const [isSwiping, setIsSwiping] = useState(false);
 
+  // PanResponder to handle dragging gestures
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: (_, gestureState) => gestureState.y0 < 50 && !isSwiping,
+      onStartShouldSetPanResponder: (_, gestureState) =>
+        gestureState.y0 < 50 && !isSwiping, // Allow gesture to start only if not swiping the Swiper
       onPanResponderMove: (_, gestureState) => {
         const newY = gestureState.moveY;
         if (newY > height * 0.4 && newY < height * 0.8) {
-          slideAnim.setValue(newY);
+          slideAnim.setValue(newY); // Update panel position dynamically
         }
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.moveY > height * 0.5) {
-          slideDown();
+          slideDown(); // Slide panel down
         } else {
-          slideUp();
+          slideUp(); // Slide panel up
         }
       },
     })
   ).current;
 
+  // Function to animate the panel sliding up
   const slideUp = () => {
     Animated.timing(slideAnim, {
       toValue: height * 0.4,
@@ -43,6 +61,7 @@ const SlidePanel = ({ onViewAllPromos }) => {
     }).start();
   };
 
+  // Function to animate the panel sliding down
   const slideDown = () => {
     Animated.timing(slideAnim, {
       toValue: height * 0.6,
@@ -51,13 +70,7 @@ const SlidePanel = ({ onViewAllPromos }) => {
     }).start();
   };
 
-  const renderQuickButton = (iconName, label) => (
-    <TouchableOpacity style={styles.quickButton}>
-      <Icon name={iconName} size={24} color="#c62828" />
-      <Text style={styles.quickButtonText}>{label}</Text>
-    </TouchableOpacity>
-  );
-
+  // Helper function to render transport buttons (Bus, Shuttle, Rail, Ferry)
   const renderTransportButton = (iconName, label, color) => (
     <TouchableOpacity style={[styles.transportButton, { backgroundColor: color }]}>
       <Icon name={iconName} size={25} color="#fff" />
@@ -65,6 +78,7 @@ const SlidePanel = ({ onViewAllPromos }) => {
     </TouchableOpacity>
   );
 
+  // Helper function to render each promo slide in the Swiper
   const renderPromoSlide = (item) => (
     <View style={styles.promoBanner} key={item.id}>
       <Image source={{ uri: item.image }} style={styles.promoImage} resizeMode="cover" />
@@ -73,39 +87,52 @@ const SlidePanel = ({ onViewAllPromos }) => {
 
   return (
     <Animated.View style={[styles.drawer, { top: slideAnim }]}>
+      {/* Handle for dragging the drawer */}
       <View style={styles.handle} {...panResponder.panHandlers}></View>
 
-      {/* Get Me Somewhere Section */}
-<View style={styles.getMeContainer}>
-  {/* Upper Part: Search Button */}
-  <TouchableOpacity
-    style={styles.searchButton}
-    onPress={() => console.log('Search button pressed')} // Replace with your desired action
-  >
-    <View style={styles.searchButtonContent}>
-      <Icon name="magnify" size={24} color="#c62828" />
-      <Text style={styles.getMeTitle}>Get Me Somewhere</Text>
-    </View>
-  </TouchableOpacity>
+      {/* Upper Section: Search bar and Quick Action buttons */}
+      <View style={styles.container}>
+        {/* Search Button */}
+        <TouchableOpacity style={styles.searchButton}  onPress={onGetMeSomewhere}>
+          <Feather name="search" size={19} color="#FFF" style={styles.iconSearchB} />
+          <Text style={styles.searchText}>Get Me Somewhere</Text>
+        </TouchableOpacity>
 
-  {/* Horizontal Separator Line */}
-  <View style={styles.separatorLine} />
+        {/* Divider Line */}
+        <View style={styles.divider} />
 
-  {/* Lower Part: Quick Buttons */}
-  <View style={styles.quickButtonsContainer}>
-    {renderQuickButton('home', 'Get Me Home')}
-    <View style={styles.verticalSeparator}></View>
-    {renderQuickButton('briefcase', 'Work')}
-    <View style={styles.verticalSeparator}></View>
-    {renderQuickButton('star', 'Places')}
-  </View>
-</View>
+        {/* Quick Action Buttons */}
+        <View style={styles.actionsContainer}>
+          {/* "Get Me Home" Button */}
+          <TouchableOpacity style={[styles.actionButton, styles.largerButton]}>
+            <Icon name="home" size={19} color="#FFF" style={styles.iconBackground} />
+            <Text style={styles.actionText}>Get Me Home</Text>
+          </TouchableOpacity>
 
+          {/* Vertical Divider */}
+          <View style={styles.verticalDivider} />
 
+          {/* "Work" Button */}
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="home" size={19} color="#FFF" style={styles.iconBackground} />
+            <Text style={styles.actionText}>Work</Text>
+          </TouchableOpacity>
 
+          {/* Vertical Divider */}
+          <View style={styles.verticalDivider} />
+
+          {/* "Places" Button */}
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="star" size={19} color="#FFF" style={styles.iconBackground} />
+            <Text style={styles.actionText}>Places</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Main Content Section */}
       <View style={styles.content}>
+        {/* Transport Line Buttons */}
         <Text style={styles.title}>Lines</Text>
-
         <View style={styles.buttonRow}>
           {renderTransportButton('bus', 'Bus', '#d32f2f')}
           {renderTransportButton('bus-school', 'Shuttle', '#388e3c')}
@@ -113,7 +140,9 @@ const SlidePanel = ({ onViewAllPromos }) => {
           {renderTransportButton('ferry', 'Ferry', '#607d8b')}
         </View>
 
+        {/* Promo Section */}
         <View style={styles.promosContainer}>
+          {/* Header with Title and View All Button */}
           <View style={styles.promosHeader}>
             <Text style={styles.promosTitle}>Promos</Text>
             <TouchableOpacity onPress={onViewAllPromos}>
@@ -121,12 +150,12 @@ const SlidePanel = ({ onViewAllPromos }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Swiper without Pagination */}
+          {/* Promo Swiper */}
           <Swiper
             style={styles.swiper}
             height={160}
             onIndexChanged={() => setIsSwiping(false)}
-            onTouchStart={() => setIsSwiping(true)}
+            onTouchStart={() => setIsSwiping(true)} // Prevent panel drag during Swiper use
             onTouchEnd={() => setIsSwiping(false)}
           >
             {promoData.map(renderPromoSlide)}
@@ -137,7 +166,9 @@ const SlidePanel = ({ onViewAllPromos }) => {
   );
 };
 
+// Stylesheet for SlidePanel
 const styles = StyleSheet.create({
+  // Main Drawer container
   drawer: {
     position: 'absolute',
     left: 0,
@@ -153,96 +184,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
+  // Drag handle at the top of the drawer
   handle: {
-    width: 80,
-    height: 5,
-    backgroundColor: '#ccc',
+    width: 120,
+    height: 7,
+    backgroundColor: '#E4E4E4',
     borderRadius: 3,
     alignSelf: 'center',
     marginBottom: 10,
   },
-getMeContainer: {
-  width: '95%',
-  alignSelf: 'center',
-  padding: 8,
-  backgroundColor: '#f5f5f5',
-  borderRadius: 20,
-  marginBottom: 15,
-  elevation: 3,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-},
-getMeHeader: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 10,
-},
-getMeTitle: {
-  fontSize: 16,
-  fontFamily: 'UrbanistBold',
-  color: '#333',
-  marginLeft: 10,
-},
-searchButton: {
-  width: '100%',
-  paddingVertical: 10,
-  paddingHorizontal: 15,
-  backgroundColor: '#fff',
-  borderRadius: 15,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1,
-  shadowRadius: 3,
-},
-searchButtonContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-
-separatorLine: {
-  height: 1,
-  backgroundColor: '#c62828',
-  marginVertical: 10,
-},
-quickButtonsContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-around',
-},
-quickButton: {
-  alignItems: 'center',
-  flex: 1,
-  paddingVertical: 10,
-},
-quickButtonText: {
-  fontSize: 12,
-  color: '#333',
-  fontFamily: 'UrbanistSemiBold',
-  marginTop: 5,
-},
-verticalSeparator: {
-  width: 1,
-  height: '70%',
-  backgroundColor: '#ddd',
-},
-  separator: {
-    width: 1,
-    height: '80%',
-    backgroundColor: '#ddd',
-  },
+  // Content Section
   content: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 2,
     marginLeft: 25,
     fontFamily: 'UrbanistBold',
@@ -272,9 +230,25 @@ verticalSeparator: {
     marginTop: 20,
     paddingHorizontal: 20,
   },
+  promosHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 5,
+    marginBottom: 5,
+  },
+  promosTitle: {
+    fontSize: 18,
+    fontFamily: 'UrbanistBold',
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontFamily: 'UrbanistSemiBold',
+    color: '#C1264E',
+  },
   promoBanner: {
     width: '100%',
-    height: 120,
+    height: 130,
     borderRadius: 10,
     overflow: 'hidden',
   },
@@ -283,24 +257,77 @@ verticalSeparator: {
     height: '100%',
     borderRadius: 10,
   },
-  promosHeader: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 5,
-  marginBottom: 5,
-},
-  viewAllText: {
-  fontSize: 14,
-  fontFamily: 'UrbanistSemiBold',
-  color: '#c62828',
-  
-},
-promosTitle: {
-  fontSize: 16,
-  fontFamily: 'UrbanistBold',
-  color: '#333',
-},
+  // Quick Action Buttons container
+  container: {
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    padding: 13,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    margin: 10,
+    marginTop: 2,
+  },
+  searchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 1,
+  },
+  searchText: {
+    fontSize: 20,
+    fontFamily: 'UrbanistSemiBold',
+    color: '#616161',
+    marginRight: 50,
+  },
+  iconSearchB: {
+    backgroundColor: '#C1264E',
+    borderRadius: 20,
+    padding: 7,
+    marginRight: 50,
+  },
+  divider: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#E0E0E0',
+    marginVertical: 10,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  largerButton: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: 14,
+    color: '#616161',
+    fontFamily: 'UrbanistMedium',
+    marginLeft: -1,
+  },
+  verticalDivider: {
+    width: 1,
+    height: '160%',
+    backgroundColor: '#E0E0E0',
+  },
+  iconBackground: {
+    backgroundColor: '#C1264E',
+    borderRadius: 20,
+    padding: 4,
+    marginRight: 8,
+  },
 });
 
 export default SlidePanel;

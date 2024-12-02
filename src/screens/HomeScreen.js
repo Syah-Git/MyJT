@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.js
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import SlidePanel from '../components/HomeScreenComponent/SlidePanel';
@@ -11,9 +10,13 @@ const HomeScreen = () => {
     navigation.navigate('PromosScreen'); // Navigates to PromosScreen
   };
 
+  const handleGetMeSomewhere = () => {
+    navigation.navigate('JourneyPlannerSearch'); // Navigates to Search Page
+  };
+
   return (
     <View style={styles.container}>
-      <SlidePanel onViewAllPromos={handleViewAllPromos} />
+      <SlidePanel onViewAllPromos={handleViewAllPromos} onGetMeSomewhere={handleGetMeSomewhere} />
     </View>
   );
 };
