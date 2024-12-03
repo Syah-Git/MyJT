@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   departText: {
-    fontSize: 12,
+    fontSize: 8,
     fontWeight: '500',
     color: '#333',
     fontFamily: 'UrbanistBold',
