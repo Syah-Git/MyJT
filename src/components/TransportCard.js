@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const TransportCard = ({ iconName = 'bus', number, lineColor = '#0000FF', style }) => {
+const TransportCard = ({ iconName = 'bus', number, lineColor = '#0000FF', showIcon = true, style }) => {
   return (
     <View style={[styles.card, style]}>
       <View style={styles.content}>
-        <Icon name={iconName} size={14} color="#333" style={styles.icon} />
+        {showIcon && ( // Conditionally render the icon based on `showIcon`
+          <Icon name={iconName} size={14} color="#333" style={styles.icon} />
+        )}
         <Text style={styles.number}>{number}</Text>
       </View>
       <View style={[styles.line, { backgroundColor: lineColor }]} />
@@ -16,7 +18,7 @@ const TransportCard = ({ iconName = 'bus', number, lineColor = '#0000FF', style 
 
 const styles = StyleSheet.create({
   card: {
-    width:54,
+    width: 54,
     height: 24,
     borderRadius: 8,
     backgroundColor: '#F5F5F5',
@@ -35,7 +37,7 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 3,
     marginBottom: 5,
-    marginLeft:-1,
+    marginLeft: -1,
   },
   number: {
     fontSize: 11,

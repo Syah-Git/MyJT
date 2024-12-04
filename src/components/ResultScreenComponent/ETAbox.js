@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import TransportCard from '../components/TransportCard'; // Assuming your TransportCard component is in the same folder
+import TransportCard from '../TransportCard'; // Assuming your TransportCard component is in the same folder
 
 const BusETAButton = ({ eta, status, busNumber, lineColor, onSubscribe }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
