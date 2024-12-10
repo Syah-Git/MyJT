@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginLeft: -1,
   },
   number: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'UrbanistBold',
     color: '#333',
     marginBottom: 8,

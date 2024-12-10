@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TransportCard from '../TransportCard'; // Assuming your TransportCard component is in the same folder
 
-const BusETAButton = ({ eta, status, busNumber, lineColor, onSubscribe }) => {
+const BusETAButton = ({ eta, status, busPlate, lineColor, onSubscribe }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   const handleSubscribe = () => {
@@ -28,9 +28,9 @@ const BusETAButton = ({ eta, status, busNumber, lineColor, onSubscribe }) => {
 
   const getStatusStyles = () => {
     if (status === 'live') {
-      return { color: 'green', icon: 'wifi' };
+      return { color: 'green', icon: 'signal-variant' };
     } else if (status === 'inaccurate') {
-      return { color: 'orange', icon: 'wifi' };
+      return { color: 'orange', icon: 'signal-variant' };
     } else {
       return { color: 'black', icon: null };
     }
@@ -50,7 +50,7 @@ const BusETAButton = ({ eta, status, busNumber, lineColor, onSubscribe }) => {
       <TouchableOpacity onPress={handleSubscribe} style={styles.notificationButton}>
         <Icon
           name="bell-outline"
-          size={20}
+          size={15}
           color={isSubscribed ? '#FF0000' : '#333'}
           solid={isSubscribed}
         />
@@ -58,49 +58,58 @@ const BusETAButton = ({ eta, status, busNumber, lineColor, onSubscribe }) => {
 
       {/* ETA Section */}
       <View style={styles.etaSection}>
-        <Text style={[styles.etaText, { color: statusStyles.color }]}>{eta} mins</Text>
-        {statusStyles.icon && <Icon name={statusStyles.icon} size={14} color={statusStyles.color} />}
+        <Text style={[styles.etaNumber, { color: statusStyles.color }]}>{eta}</Text>
+        <Text style={styles.etaLabel}>mins</Text>
       </View>
 
       {/* Bus Plate Section */}
-      <TransportCard number={busNumber} lineColor={lineColor} style={styles.busPlate} />
+      <TransportCard
+        number={busPlate} // Pass the bus plate number
+        lineColor={lineColor}
+        showIcon={false} // Hide the bus icon for bus plates
+        style={styles.busPlate}
+      />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: 100,
-    height: 120,
-    borderRadius: 12,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 8,
-    position: 'relative',
-    overflow: 'hidden',
+    width: 70, // Width of the component
+    height: 80, // Height of the component
+    borderRadius: 15, // Rounded corners
+    backgroundColor: '#FFF', // White background
+    borderWidth: 1, // Border width
+    borderColor: '#E0E0E0', // Light gray border color
+    justifyContent: 'center', // Center content vertically
+    alignItems: 'center', // Center content horizontally
+    position: 'relative', // For positioning the notification button
+    overflow: 'hidden', // Prevent content from overflowing the container
   },
   notificationButton: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    zIndex: 1,
+    position: 'absolute', // Positioned absolutely within the container
+    top: 8, // Distance from the top
+    left: 8, // Distance from the left
+    zIndex: 1, // Keep it above other elements
   },
   etaSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
+    alignItems: 'center', // Center content horizontally
+    justifyContent: 'center', // Center content vertically
+    marginBottom: 5, // Space below the ETA section
   },
-  etaText: {
-    fontSize: 24,
-    fontFamily: 'UrbanistBold',
-    marginRight: 4,
+  etaNumber: {
+    fontSize: 12, // Larger font for ETA number
+    fontFamily: 'UrbanistBold', // Font style
+    color: 'green', // Default color (can be overridden dynamically)
+  },
+  etaLabel: {
+    fontSize: 10, // Smaller font for "mins" label
+    fontFamily: 'Urbanist', // Regular font style
+    color: '#333', // Dark gray color
   },
   busPlate: {
-    marginTop: 5,
+    marginTop: 8, // Space between ETA and the bus plate
+
   },
 });
 

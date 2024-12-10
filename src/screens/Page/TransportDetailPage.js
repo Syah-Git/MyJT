@@ -1,4 +1,4 @@
-// BusDetailPage.js
+
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import SlidePanel from '../components/SlidePanelTransportDetail'; // Adjust path based on your folder structure

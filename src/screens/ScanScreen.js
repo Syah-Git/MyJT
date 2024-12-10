@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import TransportCard from '../components/TransportCard'; // Import TransportCard
 import WalkingIndicator from '../components/WalkingIndicator'; // Import WalkingIndicator
 import RouteIndicator from '../components/ResultScreenComponent/RoutesIndicator'; // Import RouteIndicator
+import BusETAButton from '../components/ResultScreenComponent/ETAbox';
 
 const tripData = [
   {
@@ -26,6 +27,7 @@ const tripData = [
       {
         type: 'bus',
         route: 'P101',
+        plate: 'JJJ123', // Example bus plate number
         startTime: '09:30',
         startStation: 'Larkin Sentral',
         endTime: '10:40',
@@ -40,14 +42,15 @@ const tripData = [
     steps: [
       {
         type: 'walk',
-        distance: 300, // Walking distance in meters
+        distance: 100, // Walking distance in meters
       },
       {
         type: 'bus',
         route: 'P102',
+        plate: 'ABC456', // Example bus plate number
         startTime: '09:45',
         startStation: 'Larkin Sentral',
-        endTime: '11:00',
+        endTime: '10:00',
         endStation: 'City Square',
         lineColor: '#32CD32',
         routeType: 'Interchange',
@@ -86,53 +89,101 @@ export default function TripPlanner() {
     }
   };
 
-  const renderRoute = ({ item }) => (
-    <View style={styles.routeCard}>
-      {/* Row for Walking + Bus on Top */}
-      <View style={styles.topRow}>
-        {item.steps.map((step, index) => {
-          if (step.type === 'walk') {
-            return (
-              <WalkingIndicator
-                key={`${item.id}-walk-${index}`}
-                distance={step.distance}
-                style={styles.walkingIndicator}
-              />
-            );
-          }
-          if (step.type === 'bus') {
-            return (
-              <TransportCard
-                key={`${item.id}-bus-${index}`}
-                number={step.route}
-                lineColor={step.lineColor}
-                showIcon={true}
-                style={styles.transportCard}
-              />
-            );
-          }
-          return null;
-        })}
-      </View>
+const renderRoute = ({ item }) => {
+  // Calculate trip duration
+  const calculateTripDuration = (steps) => {
+    const busStep = steps.find((step) => step.type === 'bus');
+    if (!busStep) return 'N/A'; // Fallback if no bus step
 
-      {/* Timeline for Time and Stations */}
-      {item.steps.map((step, index) => {
-        if (step.type === 'bus') {
-          return (
-            <RouteIndicator
-              key={`${item.id}-route-${index}`}
-              routeType={step.routeType}
-              startTime={step.startTime}
-              startStation={step.startStation}
-              endTime={step.endTime}
-              endStation={step.endStation}
-            />
-          );
-        }
-        return null;
-      })}
+    const start = busStep.startTime.split(':');
+    const end = busStep.endTime.split(':');
+
+    const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]); // Convert start time to minutes
+    const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]); // Convert end time to minutes
+
+    const durationMinutes = endMinutes - startMinutes;
+    const hours = Math.floor(durationMinutes / 60); // Calculate hours
+    const minutes = durationMinutes % 60; // Calculate remaining minutes
+
+    return `${hours > 0 ? `${hours}h ` : ''}${minutes}m`; // Format as "Xh Xm"
+  };
+
+  const tripDuration = calculateTripDuration(item.steps);
+
+  return (
+    <View style={styles.routeCard}>
+      <View style={styles.routeContent}>
+        {/* Left Section: Trip Duration */}
+        <View style={styles.leftPart}>
+          <Text style={styles.durationText}>{tripDuration}</Text>
+          <Text style={styles.durationLabel}>Duration</Text>
+        </View>
+
+        {/* Middle Section: Walking and Timeline Details */}
+        <View style={styles.middlePart}>
+          {/* Walking + Bus Route Icons in a Single Row */}
+          <View style={styles.iconRow}>
+            {item.steps.map((step, index) => {
+              if (step.type === 'walk') {
+                return (
+                  <WalkingIndicator
+                    key={`${item.id}-walk-${index}`}
+                    distance={step.distance}
+                    style={styles.walkingIndicator}
+                  />
+                );
+              }
+              if (step.type === 'bus') {
+                return (
+                  <TransportCard
+                    key={`${item.id}-bus-${index}`}
+                    number={step.route} // Show route number in TransportCard
+                    lineColor={step.lineColor}
+                    showIcon={true} // Keep the icon for the route
+                    style={styles.transportCard}
+                  />
+                );
+              }
+              return null;
+            })}
+          </View>
+
+          {/* Timeline and Station Details */}
+          {item.steps.map((step, index) => {
+            if (step.type === 'bus') {
+              return (
+                <RouteIndicator
+                  key={`${item.id}-route-${index}`}
+                  routeType={step.routeType}
+                  startTime={step.startTime}
+                  startStation={step.startStation}
+                  endTime={step.endTime}
+                  endStation={step.endStation}
+                />
+              );
+            }
+            return null;
+          })}
+        </View>
+
+        {/* Right Section: ETA Button */}
+        <BusETAButton
+          eta={2} // Example ETA, replace with dynamic data
+          status="live" // Example status, replace with dynamic data
+          busPlate={item.steps.find((step) => step.type === 'bus')?.plate} // Pass bus plate number
+          lineColor={item.steps.find((step) => step.type === 'bus')?.lineColor} // Pass line color
+          showIcon={false} // Do not show the bus icon for bus plates
+          onSubscribe={() =>
+            console.log(`Subscribed to notifications for bus ${item.id}`)
+          }
+          style={styles.busETAButton}
+        />
+      </View>
     </View>
   );
+};
+
+
 
   return (
     <View style={styles.container}>
@@ -230,9 +281,6 @@ export default function TripPlanner() {
         </View>
       </View>
 
-      {/* Divider */}
-      <View style={styles.divider} />
-
       {/* Lower Part: Scrollable Results */}
       <FlatList
         data={tripData}
@@ -287,181 +335,254 @@ export default function TripPlanner() {
 }
 
 const styles = StyleSheet.create({
+  /* ======== Main Container ======== */
   container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
+    flex: 1, // Fills the entire screen
+    backgroundColor: '#f8f9fa', // Light gray background for the entire app
   },
-  upperPart: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontFamily: 'UrbanistBold',
-    marginBottom: 16,
-    color: '#333',
-  },
+  /* ======== Route Card ======== */
   routeCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: '#fff', // White background for each card
+    borderRadius: 0, // Rounded card edges
+    padding: 8, // Padding inside the card
+    marginVertical: 3, // Space between cards
+    shadowColor: '#000', // Shadow for card
+    shadowOpacity: 0.1, // Transparency of shadow
+    shadowOffset: { width: 0, height: 2 }, // Shadow placement
+    shadowRadius: 1, // Shadow blur radius
+    elevation: 2, // Android shadow elevation
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
+  routeContent: {
+    flexDirection: 'row', // Align left, middle, and right sections in a row
+    justifyContent: 'space-between', // Space between sections
+    alignItems: 'center', // Center content vertically
+  },
+
+  /* Left Section (Trip Duration) */
+  leftPart: {
+    alignItems: 'center', // Center content horizontally
+    justifyContent: 'center', // Center content vertically
+    width: 60, // Fixed width for left section
+  },
+  durationText: {
+    fontSize: 15, // Larger font for duration text
+    fontFamily: 'UrbanistBold', // Font style
+    color: '#333', // Dark gray color
+  },
+  durationLabel: {
+    fontSize: 10, // Smaller font for label
+    fontFamily: 'Urbanist', // Regular font style
+    color: '#666', // Light gray color
+  },
+
+  /* Middle Section (Icons and Timeline) */
+  middlePart: {
+    flex: 1, // Take up remaining space
+    paddingHorizontal: 0, // Add spacing between left and right sections
+  },
+  iconRow: {
+    flexDirection: 'row', // Align walking and bus icons in a single row
+    alignItems: 'center', // Center align items vertically
+    marginBottom: 5, // Space below the row
   },
   walkingIndicator: {
-    marginRight: 10,
+    marginRight: 8, // Space between walking indicator and bus icon
   },
   transportCard: {
-    marginLeft: 10,
+    marginLeft: 10, // Space between walking indicator and transport card
   },
-  timelineContainer: {
-    flex: 1,
-    marginTop: 8,
+
+  /* Right Section (ETA Button) */
+  busETAButton: {
+    width: 80, // Width of the ETA button
+    height: 80, // Height of the ETA button
+    borderRadius: 12, // Rounded edges for the button
+    backgroundColor: '#fff', // White background
+    justifyContent: 'center', // Center content horizontally
+    alignItems: 'center', // Center content vertically
+    shadowColor: '#000', // Shadow for the button
+    shadowOpacity: 0.1, // Transparency of shadow
+    shadowOffset: { width: 0, height: 2 }, // Shadow placement
+    shadowRadius: 8, // Shadow blur radius
+    elevation: 3, // Android shadow elevation
   },
-  routeType: {
-    fontSize: 14,
-    fontFamily: 'UrbanistBold',
-    color: '#FFA500',
-    marginVertical: 4,
+  /* ======== Upper Section (Search & Filter Section) ======== */
+  upperPart: {
+    padding: 16, // Spacing inside the container
+    backgroundColor: '#fff', // White background for the upper part
+    borderBottomLeftRadius: 16, // Rounded corners (bottom-left)
+    borderBottomRightRadius: 16, // Rounded corners (bottom-right)
+    shadowColor: '#000', // Shadow color (for elevation effect)
+    shadowOpacity: 0.1, // Shadow transparency
+    shadowOffset: { width: 0, height: 2 }, // Shadow placement
+    shadowRadius: 8, // Shadow blur radius
+    elevation: 4, // Android shadow (useful for card-like effects)
   },
-  routeList: {
-    paddingBottom: 16,
+  title: {
+    fontSize: 22, // Larger font size for the page title
+    fontFamily: 'UrbanistBold', // Font style
+    marginBottom: 16, // Space below the title
+    color: '#333', // Dark gray color
   },
+
+  /* ======== Inputs for Start & Destination ======== */
   stackedInputsContainer: {
-    position: 'relative',
-    marginBottom: 5,
+    position: 'relative', // Used for positioning the swap button
+    marginBottom: 5, // Spacing below the inputs container
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    backgroundColor: '#fff',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
+    flexDirection: 'row', // Align input elements in a row (icon + input field)
+    alignItems: 'center', // Center items vertically
+    borderWidth: 1, // Border for the input container
+    borderColor: '#ddd', // Light gray border color
+    borderRadius: 20, // Rounded input edges
+    paddingHorizontal: 12, // Padding inside the input container (left & right)
+    paddingVertical: 5, // Padding inside the input container (top & bottom)
+    backgroundColor: '#fff', // White background for inputs
+    marginBottom: 10, // Space between input fields
+    shadowColor: '#000', // Shadow for input fields
+    shadowOpacity: 0.1, // Transparency of shadow
+    shadowOffset: { width: 0, height: 2 }, // Placement of shadow
+    shadowRadius: 6, // Shadow blur radius
+    elevation: 2, // Elevation for Android shadow
   },
   leftIconContainer: {
-    marginRight: 10,
+    marginRight: 10, // Space between the icon and the input text
   },
   textInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-    fontFamily: 'UrbanistBold',
+    flex: 1, // Takes the remaining space in the row
+    fontSize: 14, // Text size in the input field
+    color: '#333', // Input text color
+    fontFamily: 'UrbanistBold', // Font style
   },
   rightIconContainer: {
-    marginLeft: 10,
+    marginLeft: 10, // Space between the input text and the search icon
   },
+
+  /* ======== Swap Button (Switch Start & Destination) ======== */
   swapButton: {
-    position: 'absolute',
-    right: 0,
-    top: '30%',
-    width: 40,
+    position: 'absolute', // Positioned within the `stackedInputsContainer`
+    right: 0, // Aligns the button to the right edge
+    top: '30%', // Vertical placement (relative to parent height)
+    width: 40, // Button size
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#007BFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 20, // Circular button
+    backgroundColor: '#007BFF', // Blue background
+    justifyContent: 'center', // Center icon horizontally
+    alignItems: 'center', // Center icon vertically
   },
+
+  /* ======== Depart Button ======== */
   departButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    alignSelf: 'flex-start',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    width: 160,
-    height: 40,
+    flexDirection: 'row', // Align the clock icon, text, and chevron in a row
+    alignItems: 'center', // Vertically center items
+    justifyContent: 'space-between', // Space between items
+    alignSelf: 'flex-start', // Align the button to the left
+    backgroundColor: '#f5f5f5', // Light gray button background
+    paddingHorizontal: 10, // Horizontal padding inside the button
+    paddingVertical: 10, // Vertical padding inside the button
+    borderRadius: 20, // Rounded edges
+    borderWidth: 1, // Border width
+    borderColor: '#ddd', // Border color
+    width: 160, // Button width
+    height: 40, // Button height
   },
   departText: {
-    fontSize: 12,
-    fontFamily: 'UrbanistBold',
-    color: '#0F437B',
+    fontSize: 12, // Font size for the text inside the button
+    fontFamily: 'UrbanistBold', // Font style
+    color: '#0F437B', // Dark blue text color
   },
+
+  /* ======== Filter Section (Fastest & Easiest) ======== */
   filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 8,
+    flexDirection: 'row', // Align "Suggested Routes" and filters in a row
+    justifyContent: 'space-between', // Space between text and filter buttons
+    alignItems: 'center', // Align items vertically
+    marginTop: 16, // Space above the filter section
+    marginBottom: 8, // Space below the filter section
+  },
+  subtitle: {
+    fontSize: 18, // Font size for "Suggested Routes"
+    fontFamily: 'UrbanistBold', // Font style
+    color: '#333', // Dark gray color
   },
   filterButtons: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Align filter buttons in a row
   },
   filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-    marginLeft: 8,
+    paddingVertical: 8, // Vertical padding inside each button
+    paddingHorizontal: 20, // Horizontal padding inside each button
+    borderRadius: 25, // Rounded edges for filter buttons
+    borderWidth: 1, // Border for filter buttons
+    borderColor: '#ddd', // Light gray border
+    backgroundColor: '#fff', // White background for inactive button
+    marginLeft: 8, // Space between buttons
   },
   activeFilterButton: {
-    backgroundColor: '#C2185B',
-    borderColor: '#C2185B',
+    backgroundColor: '#C2185B', // Dark red background for active button
+    borderColor: '#C2185B', // Same color as the background
   },
   filterText: {
-    fontSize: 14,
-    fontFamily: 'UrbanistBold',
-    color: '#000',
+    fontSize: 14, // Font size for filter button text
+    fontFamily: 'UrbanistBold', // Font style
+    color: '#000', // Text color for inactive button
   },
   activeFilterText: {
-    color: '#fff',
+    color: '#fff', // White text color for active button
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 10,
+
+  /* ======== Timeline Section (Walking and Bus) ======== */
+  topRow: {
+    flexDirection: 'row', // Align walking indicator and transport card in a row
+    alignItems: 'center', // Center items vertically
+    marginBottom: 5, // Space below the row
+    marginLeft: 12, // Add some spacing from the left edge
   },
+  timelineContainer: {
+    flex: 1, // Takes up remaining space in the row
+    marginTop: 8, // Space above the timeline
+  },
+  routeType: {
+    fontSize: 14, // Font size for route type text (e.g., "Direct", "Interchange")
+    fontFamily: 'UrbanistBold', // Font style
+    color: '#FFA500', // Orange text for interchange type
+    marginVertical: 4, // Space above and below the route type text
+  },
+  routeList: {
+    paddingBottom: 16, // Padding below the FlatList to avoid clipping
+  },
+
+  /* ======== Modal for Depart Time ======== */
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    flex: 1, // Covers the entire screen
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent black overlay
   },
   modalContainer: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    backgroundColor: '#fff', // White background for the modal
+    padding: 16, // Padding inside the modal
+    borderTopLeftRadius: 16, // Rounded edges at the top-left
+    borderTopRightRadius: 16, // Rounded edges at the top-right
+    position: 'absolute', // Positioned at the bottom of the screen
+    bottom: 0, // Align to the bottom
+    width: '100%', // Full width of the screen
   },
   modalOption: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 16, // Padding inside each option
+    borderBottomWidth: 1, // Border between options
+    borderBottomColor: '#eee', // Light gray border color
   },
   modalOptionText: {
-    fontSize: 16,
-    fontFamily: 'UrbanistBold',
-    textAlign: 'center',
+    fontSize: 16, // Font size for modal text
+    fontFamily: 'UrbanistBold', // Font style
+    textAlign: 'center', // Center the text
+  },
+
+  /* ======== Row for Transport Card and ETA Button ======== */
+  busRow: {
+    flexDirection: 'row', // Align the TransportCard and BusETAButton in a row
+    alignItems: 'center', // Center items vertically
+    justifyContent: 'space-between', // Push the BusETAButton to the right
+    paddingVertical: 5, // Add vertical padding for alignment
   },
 });
+

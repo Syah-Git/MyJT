@@ -154,7 +154,7 @@ const SlidePanel = () => {
   return (
     <>
       <Animated.View style={[styles.drawer, { top: slideAnim }]}>
-        <View style={styles.handle} {...panResponder.panHandlers}></View>
+        <View style={styles.handle} {...panResponder.panHandlers} />
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Nearby</Text>
           <TouchableOpacity onPress={refreshData}>
