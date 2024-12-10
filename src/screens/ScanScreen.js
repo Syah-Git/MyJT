@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import TransportCard from '../components/TransportCard'; // Import TransportCard
 import WalkingIndicator from '../components/WalkingIndicator'; // Import WalkingIndicator
-import TimeStation from '../components/TimeStation'; // Import TimeStation
+import RouteIndicator from '../components/ResultScreenComponent/RoutesIndicator'; // Import RouteIndicator
 
 const tripData = [
   {
@@ -86,32 +86,51 @@ export default function TripPlanner() {
     }
   };
 
-  const renderStep = (step, tripId, index) => {
-    if (step.type === 'walk') {
-      return (
-        <View key={`${tripId}-walk-${index}`} style={styles.stepRow}>
-          <WalkingIndicator distance={step.distance} />
-          <Icon name="arrow-forward-outline" size={16} color="#333" style={styles.arrowIcon} />
-        </View>
-      );
-    } else if (step.type === 'bus') {
-      return (
-        <View key={`${tripId}-bus-${index}`} style={styles.stepRow}>
-          <TransportCard number={step.route} lineColor={step.lineColor} showIcon={true} />
-          <View style={styles.timelineContainer}>
-            <TimeStation time={step.startTime} station={step.startStation} />
-            {step.routeType && <Text style={styles.routeType}>{step.routeType}</Text>}
-            <TimeStation time={step.endTime} station={step.endStation} />
-          </View>
-        </View>
-      );
-    }
-    return null;
-  };
-
   const renderRoute = ({ item }) => (
     <View style={styles.routeCard}>
-      {item.steps.map((step, index) => renderStep(step, item.id, index))}
+      {/* Row for Walking + Bus on Top */}
+      <View style={styles.topRow}>
+        {item.steps.map((step, index) => {
+          if (step.type === 'walk') {
+            return (
+              <WalkingIndicator
+                key={`${item.id}-walk-${index}`}
+                distance={step.distance}
+                style={styles.walkingIndicator}
+              />
+            );
+          }
+          if (step.type === 'bus') {
+            return (
+              <TransportCard
+                key={`${item.id}-bus-${index}`}
+                number={step.route}
+                lineColor={step.lineColor}
+                showIcon={true}
+                style={styles.transportCard}
+              />
+            );
+          }
+          return null;
+        })}
+      </View>
+
+      {/* Timeline for Time and Stations */}
+      {item.steps.map((step, index) => {
+        if (step.type === 'bus') {
+          return (
+            <RouteIndicator
+              key={`${item.id}-route-${index}`}
+              routeType={step.routeType}
+              startTime={step.startTime}
+              startStation={step.startStation}
+              endTime={step.endTime}
+              endStation={step.endStation}
+            />
+          );
+        }
+        return null;
+      })}
     </View>
   );
 
@@ -174,6 +193,40 @@ export default function TripPlanner() {
         {/* Suggested Routes Filter */}
         <View style={styles.filterContainer}>
           <Text style={styles.subtitle}>Suggested Routes</Text>
+          <View style={styles.filterButtons}>
+            <TouchableOpacity
+              onPress={() => setIsFastest(true)}
+              style={[
+                styles.filterButton,
+                isFastest && styles.activeFilterButton,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  isFastest && styles.activeFilterText,
+                ]}
+              >
+                Fastest
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsFastest(false)}
+              style={[
+                styles.filterButton,
+                !isFastest && styles.activeFilterButton,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  !isFastest && styles.activeFilterText,
+                ]}
+              >
+                Easiest
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -266,17 +319,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  stepRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  arrowIcon: {
-    marginHorizontal: 8,
+  walkingIndicator: {
+    marginRight: 10,
+  },
+  transportCard: {
+    marginLeft: 10,
   },
   timelineContainer: {
     flex: 1,
-    paddingLeft: 12,
+    marginTop: 8,
   },
   routeType: {
     fontSize: 14,
@@ -356,15 +412,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 18,
-    fontFamily: 'UrbanistBold',
-    color: '#333',
-  },
   filterButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
   },
   filterButton: {
     paddingVertical: 8,
