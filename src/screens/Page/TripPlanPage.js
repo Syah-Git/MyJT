@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import SlidePanel from '../components/SlidePanelTripPlan'; // Adjust path based on your folder structure
+import SlidePanel from './SlidePanelTripPlan'; // Adjust path based on your folder structure
 
 const TransportDetailPage = () => {
     return <SlidePanel />;
