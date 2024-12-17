@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
+import SwapIcon from 'react-native-vector-icons/AntDesign';
 import TransportCard from '../components/TransportCard'; // Import TransportCard
 import WalkingIndicator from '../components/WalkingIndicator'; // Import WalkingIndicator
 import RouteIndicator from '../components/ResultScreenComponent/RoutesIndicator'; // Import RouteIndicator
@@ -121,31 +122,30 @@ const renderRoute = ({ item }) => {
 
         {/* Middle Section: Walking and Timeline Details */}
         <View style={styles.middlePart}>
-          {/* Walking + Bus Route Icons in a Single Row */}
+          {/* Walking + Bus Route Icons in a Single Row with Separator */}
           <View style={styles.iconRow}>
-            {item.steps.map((step, index) => {
-              if (step.type === 'walk') {
-                return (
+            {item.steps.map((step, index) => (
+              <React.Fragment key={`${item.id}-${step.type}-${index}`}>
+                {step.type === 'walk' ? (
                   <WalkingIndicator
-                    key={`${item.id}-walk-${index}`}
                     distance={step.distance}
                     style={styles.walkingIndicator}
                   />
-                );
-              }
-              if (step.type === 'bus') {
-                return (
+                ) : step.type === 'bus' ? (
                   <TransportCard
-                    key={`${item.id}-bus-${index}`}
-                    number={step.route} // Show route number in TransportCard
+                    number={step.route}
                     lineColor={step.lineColor}
-                    showIcon={true} // Keep the icon for the route
+                    showIcon={true}
                     style={styles.transportCard}
                   />
-                );
-              }
-              return null;
-            })}
+                ) : null}
+
+                {/* Add ">" if it's not the last step */}
+                {index < item.steps.length - 1 && (
+                  <Text style={styles.iconSeparator}> {">"} </Text>
+                )}
+              </React.Fragment>
+            ))}
           </View>
 
           {/* Timeline and Station Details */}
@@ -170,9 +170,9 @@ const renderRoute = ({ item }) => {
         <BusETAButton
           eta={2} // Example ETA, replace with dynamic data
           status="live" // Example status, replace with dynamic data
-          busPlate={item.steps.find((step) => step.type === 'bus')?.plate} // Pass bus plate number
-          lineColor={item.steps.find((step) => step.type === 'bus')?.lineColor} // Pass line color
-          showIcon={false} // Do not show the bus icon for bus plates
+          busPlate={item.steps.find((step) => step.type === 'bus')?.plate}
+          lineColor={item.steps.find((step) => step.type === 'bus')?.lineColor}
+          showIcon={false}
           onSubscribe={() =>
             console.log(`Subscribed to notifications for bus ${item.id}`)
           }
@@ -182,6 +182,7 @@ const renderRoute = ({ item }) => {
     </View>
   );
 };
+
 
 
 
@@ -198,7 +199,7 @@ const renderRoute = ({ item }) => {
             </View>
             <TextInput
               style={styles.textInput}
-              placeholder="Current Location"
+              placeholder="Starting Point"
               placeholderTextColor="#999"
               value={startLocation}
               onChangeText={setStartLocation}
@@ -227,7 +228,7 @@ const renderRoute = ({ item }) => {
 
           {/* Swap Button */}
           <TouchableOpacity onPress={swapLocations} style={styles.swapButton}>
-            <Icon name="swap-vertical-outline" size={24} color="#fff" />
+            <SwapIcon name="swap" size={14} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -238,7 +239,7 @@ const renderRoute = ({ item }) => {
         >
           <Icon name="time-outline" size={16} color="#0F437B" />
           <Text style={styles.departText}>{departTime}</Text>
-          <Icon name="chevron-down-outline" size={16} color="#777" />
+          <Icon name="chevron-down-outline" size={16} color="#777" marginLeft={5} />
         </TouchableOpacity>
 
         {/* Suggested Routes Filter */}
@@ -344,8 +345,8 @@ const styles = StyleSheet.create({
   routeCard: {
     backgroundColor: '#fff', // White background for each card
     borderRadius: 0, // Rounded card edges
-    padding: 8, // Padding inside the card
-    marginVertical: 3, // Space between cards
+    padding: 10, // Padding inside the card
+    marginVertical: 1, // Space between cards
     shadowColor: '#000', // Shadow for card
     shadowOpacity: 0.1, // Transparency of shadow
     shadowOffset: { width: 0, height: 2 }, // Shadow placement
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
     marginRight: 8, // Space between walking indicator and bus icon
   },
   transportCard: {
-    marginLeft: 10, // Space between walking indicator and transport card
+    marginLeft: 2, // Space between walking indicator and transport card
   },
 
   /* Right Section (ETA Button) */
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
   /* ======== Inputs for Start & Destination ======== */
   stackedInputsContainer: {
     position: 'relative', // Used for positioning the swap button
-    marginBottom: 5, // Spacing below the inputs container
+    marginBottom: 2, // Spacing below the inputs container
   },
   inputContainer: {
     flexDirection: 'row', // Align input elements in a row (icon + input field)
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd', // Light gray border color
     borderRadius: 20, // Rounded input edges
     paddingHorizontal: 12, // Padding inside the input container (left & right)
-    paddingVertical: 5, // Padding inside the input container (top & bottom)
+    paddingVertical: 3, // Padding inside the input container (top & bottom)
     backgroundColor: '#fff', // White background for inputs
     marginBottom: 10, // Space between input fields
     shadowColor: '#000', // Shadow for input fields
@@ -462,35 +463,37 @@ const styles = StyleSheet.create({
   /* ======== Swap Button (Switch Start & Destination) ======== */
   swapButton: {
     position: 'absolute', // Positioned within the `stackedInputsContainer`
-    right: 0, // Aligns the button to the right edge
-    top: '30%', // Vertical placement (relative to parent height)
-    width: 40, // Button size
-    height: 40,
-    borderRadius: 20, // Circular button
-    backgroundColor: '#007BFF', // Blue background
+    right: -20, // Aligns the button to the right edge
+    top: '35%', // Vertical placement (relative to parent height)
+    width: 35, // Button size
+    height: 20,
+    borderRadius: 10, // Circular button
+    backgroundColor: '#5A5959', // Blue background
     justifyContent: 'center', // Center icon horizontally
     alignItems: 'center', // Center icon vertically
+     transform: [{ rotate: '90deg' }],
   },
 
   /* ======== Depart Button ======== */
-  departButton: {
-    flexDirection: 'row', // Align the clock icon, text, and chevron in a row
-    alignItems: 'center', // Vertically center items
-    justifyContent: 'space-between', // Space between items
-    alignSelf: 'flex-start', // Align the button to the left
-    backgroundColor: '#f5f5f5', // Light gray button background
-    paddingHorizontal: 10, // Horizontal padding inside the button
-    paddingVertical: 10, // Vertical padding inside the button
-    borderRadius: 20, // Rounded edges
-    borderWidth: 1, // Border width
-    borderColor: '#ddd', // Border color
-    width: 160, // Button width
-    height: 40, // Button height
-  },
+ departButton: {
+  flexDirection: 'row', // Align the clock icon, text, and chevron in a row
+  alignItems: 'center', // Vertically center items
+  backgroundColor: '#f5f5f5', // Light gray background
+  paddingHorizontal: 12, // Dynamic horizontal padding
+  paddingVertical: 8, // Vertical padding
+  borderRadius: 20, // Rounded edges
+  borderWidth: 1, // Border width
+  borderColor: '#ddd', // Light gray border
+  alignSelf: 'flex-start', // Button adjusts to its content width
+  minWidth: 100, // Optional: Ensures minimum width for the button
+},
+
   departText: {
     fontSize: 12, // Font size for the text inside the button
-    fontFamily: 'UrbanistBold', // Font style
+    fontFamily: 'UrbanistSemiBold', // Font style
     color: '#0F437B', // Dark blue text color
+    marginLeft: 5,
+    alignItems: 'center', // Vertically center items
   },
 
   /* ======== Filter Section (Fastest & Easiest) ======== */
@@ -502,16 +505,16 @@ const styles = StyleSheet.create({
     marginBottom: 8, // Space below the filter section
   },
   subtitle: {
-    fontSize: 18, // Font size for "Suggested Routes"
-    fontFamily: 'UrbanistBold', // Font style
+    fontSize: 16, // Font size for "Suggested Routes"
+    fontFamily: 'UrbanistSemiBold', // Font style
     color: '#333', // Dark gray color
   },
   filterButtons: {
     flexDirection: 'row', // Align filter buttons in a row
   },
   filterButton: {
-    paddingVertical: 8, // Vertical padding inside each button
-    paddingHorizontal: 20, // Horizontal padding inside each button
+    paddingVertical: 5, // Vertical padding inside each button
+    paddingHorizontal: 15, // Horizontal padding inside each button
     borderRadius: 25, // Rounded edges for filter buttons
     borderWidth: 1, // Border for filter buttons
     borderColor: '#ddd', // Light gray border
@@ -523,8 +526,8 @@ const styles = StyleSheet.create({
     borderColor: '#C2185B', // Same color as the background
   },
   filterText: {
-    fontSize: 14, // Font size for filter button text
-    fontFamily: 'UrbanistBold', // Font style
+    fontSize: 12, // Font size for filter button text
+    fontFamily: 'UrbanistSemiBold', // Font style
     color: '#000', // Text color for inactive button
   },
   activeFilterText: {

@@ -7,8 +7,9 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import TransportCard from './TransportCard'; // Import your TransportCard component
-import WalkingIndicator from './WalkingIndicator'; // Import your WalkingIndicator component
+import TransportCard from '../components/TransportCard'; // Provided TransportCard component
+import WalkingIndicator from '../components/WalkingIndicator'; // Provided WalkingIndicator component
+import TripPlanTimeline from '../components/TripPlanTimeline'; // TripPlanTimeline component
 
 const { height } = Dimensions.get('window');
 
@@ -51,19 +52,31 @@ const SlidePanel = () => {
     }).start();
   };
 
-  // Mock data
+  // Mock data for upper panel
   const tripType = 'Interroute Trip'; // Could be 'Direct Trip' as well
   const routes = [
     { type: 'bus', busNumber: 'C789' }, // First bus route
-    { type: 'walk', distance: 160 },   // Walking segment
-    { type: 'bus', busNumber: 'JL09' } // Second bus route
+    { type: 'walk', distance: 300 }, // Walking segment
+    { type: 'bus', busNumber: 'JL09' }, // Second bus route
   ];
   const startTime = '9:30AM';
   const endTime = '9:50AM';
   const duration = '20 min';
 
+  const tripStations = [
+  { id: '1', name: 'Larkin Sentral', time: '09:30 AM' },
+  { id: '2', name: 'JKR Larkin', time: '09:40 AM' },
+  { id: '3', name: 'Maktab Sultan Abu Bakar', time: '09:50 AM' },
+  { id: '4', name: 'Hospital Sultanah Aminah', time: '10:00 AM' },
+  { id: '5', name: 'Zoo Johor', time: '10:10 AM' },
+];
+
+
   return (
-    <Animated.View style={[styles.drawer, { top: slideAnim }]} {...panResponder.panHandlers}>
+    <Animated.View
+      style={[styles.drawer, { top: slideAnim }]}
+      {...panResponder.panHandlers}
+    >
       {/* Handle */}
       <View style={styles.handle} />
 
@@ -89,7 +102,9 @@ const SlidePanel = () => {
                 )}
 
                 {/* Arrow if there's another step */}
-                {index < routes.length - 1 && <Text style={styles.routeArrow}>›</Text>}
+                {index < routes.length - 1 && (
+                  <Text style={styles.routeArrow}>›</Text>
+                )}
               </React.Fragment>
             ))}
           </View>
@@ -106,6 +121,12 @@ const SlidePanel = () => {
 
       {/* Divider */}
       <View style={styles.divider} />
+
+      {/* Lower Section: TripPlanTimeline */}
+      <View style={styles.tripTimelineContainer}>
+        {/* Pass real `data` as props here */}
+        <TripPlanTimeline data={tripStations} />
+      </View>
     </Animated.View>
   );
 };
@@ -153,7 +174,7 @@ const styles = StyleSheet.create({
   routeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Take up available space on the left
+    flex: 1,
   },
   routeArrow: {
     fontSize: 16,
@@ -162,7 +183,7 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     alignItems: 'flex-end',
-    marginLeft: 10, // Add spacing between routeContainer and timeContainer
+    marginLeft: 10,
   },
   timeText: {
     fontSize: 12,
@@ -178,6 +199,10 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#E0E0E0',
     marginVertical: 10,
+  },
+  tripTimelineContainer: {
+    flex: 1,
+    paddingTop: 10,
   },
 });
 
